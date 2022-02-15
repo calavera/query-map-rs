@@ -1,3 +1,9 @@
+# QueryMap
+
+[![crates.io][crate-image]][crate-link]
+[![Documentation][doc-image]][doc-link]
+[![Build Status][build-image]][build-link]
+
 QueryMap is a generic wrapper around HashMap<String, Vec<V>>
 to handle different transformations like URL query strings.
 
@@ -55,3 +61,12 @@ let map = data.parse::<QueryMap<String>>().unwrap();
 let got = map.all("foo").unwrap();
 assert_eq!(vec!["bar", "qux"], got);
 ```
+
+[//]: # (badges)
+
+[crate-image]: https://img.shields.io/crates/v/query_map.svg
+[crate-link]: https://crates.io/crates/query_map
+[doc-image]: https://docs.rs/query_map/badge.svg
+[doc-link]: https://docs.rs/query_map
+[build-image]: https://github.com/calavera/query-map-rs/workflows/Build/badge.svg
+[build-link]: https://github.com/calavera/query-map-rs/actions?query=workflow%3ACI+branch%3Amain
