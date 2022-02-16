@@ -1,10 +1,7 @@
 use crate::QueryMap;
 use std::{collections::hash_map::Entry::*, collections::HashMap};
 
-impl<V> QueryMap<V>
-where
-    V: std::fmt::Display,
-{
+impl QueryMap {
     /// Convert a `QueryMap` into a URL query string
     pub fn to_query_string(&self) -> String {
         self.iter()
@@ -14,7 +11,7 @@ where
     }
 }
 
-impl std::str::FromStr for QueryMap<String> {
+impl std::str::FromStr for QueryMap {
     type Err = std::convert::Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -43,7 +40,7 @@ mod tests {
     #[test]
     fn test_empty_map_to_query_string() {
         let data = HashMap::new();
-        let map: QueryMap<String> = QueryMap(data.into());
+        let map: QueryMap = QueryMap(data.into());
         let query = map.to_query_string();
         assert_eq!("", &query);
     }
@@ -54,7 +51,7 @@ mod tests {
         data.insert("foo".into(), vec!["bar".into(), "qux".into()]);
         data.insert("baz".into(), vec!["quux".into()]);
 
-        let map: QueryMap<String> = QueryMap(data.into());
+        let map: QueryMap = QueryMap(data.into());
         let query = map.to_query_string();
         assert!(query.contains("foo=bar&foo=qux"));
         assert!(query.contains("baz=quux"));
@@ -63,7 +60,7 @@ mod tests {
     #[test]
     fn test_map_from_str() {
         let data = "foo=bar&baz=quux&foo=qux";
-        let map = data.parse::<QueryMap<String>>().unwrap();
+        let map = data.parse::<QueryMap>().unwrap();
 
         let got = map.all("foo").unwrap();
         assert_eq!(vec!["bar", "qux"], got);

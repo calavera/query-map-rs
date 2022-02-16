@@ -1,7 +1,7 @@
 [package]
 name = "query_map"
-description = "VectorMap is a generic wrapper around HashMap<String, Vec<V>> to handle different transformations like URL query strings."
-version = "0.1.0"
+description = "VectorMap is a generic wrapper around HashMap<String, Vec<String>> to handle different transformations like URL query strings."
+version = "0.2.0"
 edition = "2018"
 license = "MIT"
 repository = "https://github.com/calavera/query_map"

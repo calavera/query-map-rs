@@ -4,7 +4,7 @@
 
 //!
 //!
-//! QueryMap is a generic wrapper around HashMap<String, Vec<V>>
+//! QueryMap is a generic wrapper around HashMap<String, Vec<String>>
 //! to handle different transformations like URL query strings.
 //!
 //! QueryMap can normalize HashMap structures with single value elements
@@ -21,8 +21,8 @@
 //! let mut data = HashMap::new();
 //! data.insert("foo".into(), vec!["bar".into()]);
 //!
-//! let map: QueryMap<String> = QueryMap::from(data);
-//! assert_eq!("bar", map.first("foo").unwrap().as_str());
+//! let map: QueryMap = QueryMap::from(data);
+//! assert_eq!("bar", map.first("foo").unwrap());
 //! assert_eq!(None, map.first("bar"));
 //! ```
 //!
@@ -33,7 +33,7 @@
 //!
 //! #[derive(Deserialize)]
 //! struct Test {
-//!     data: QueryMap<String>,
+//!     data: QueryMap,
 //! }
 //!
 //! let json = serde_json::json!({
@@ -43,7 +43,7 @@
 //! });
 //!
 //! let test: Test = serde_json::from_value(json).unwrap();
-//! assert_eq!("bar", test.data.first("foo").unwrap().as_str());
+//! assert_eq!("bar", test.data.first("foo").unwrap());
 //! ```
 //!
 //! Create a QueryMap from a query string (requires `url-query` feature):
@@ -52,7 +52,7 @@
 //! use query_map::QueryMap;
 //!
 //! let data = "foo=bar&baz=quux&foo=qux";
-//! let map = data.parse::<QueryMap<String>>().unwrap();
+//! let map = data.parse::<QueryMap>().unwrap();
 //! let got = map.all("foo").unwrap();
 //! assert_eq!(vec!["bar", "qux"], got);
 //! ```
@@ -84,19 +84,21 @@ pub use url_query::*;
 /// Internally data is always represented as many values
 #[derive(Default, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize), serde(crate = "serde_crate"))]
-pub struct QueryMap<V>(pub(crate) Arc<HashMap<String, Vec<V>>>);
+pub struct QueryMap(pub(crate) Arc<HashMap<String, Vec<String>>>);
 
-impl<V> QueryMap<V> {
+impl QueryMap {
     /// Return the first elelemnt associated with a key
-    pub fn first(&self, key: &str) -> Option<&V> {
-        self.0.get(key).and_then(|values| values.first())
+    pub fn first(&self, key: &str) -> Option<&str> {
+        self.0
+            .get(key)
+            .and_then(|values| values.first().map(String::as_str))
     }
 
     /// Return all elements associated with a key
-    pub fn all(&self, key: &str) -> Option<Vec<&V>> {
+    pub fn all(&self, key: &str) -> Option<Vec<&str>> {
         self.0
             .get(key)
-            .map(|values| values.iter().collect::<Vec<_>>())
+            .map(|values| values.iter().map(String::as_str).collect::<Vec<_>>())
     }
 
     /// Return true if there are no elements in the map
@@ -105,7 +107,7 @@ impl<V> QueryMap<V> {
     }
 
     /// Return an iterator for this map
-    pub fn iter(&self) -> QueryMapIter<'_, V> {
+    pub fn iter(&self) -> QueryMapIter<'_> {
         QueryMapIter {
             data: self,
             keys: self.0.keys(),
@@ -115,31 +117,31 @@ impl<V> QueryMap<V> {
     }
 }
 
-impl<V> Clone for QueryMap<V> {
+impl Clone for QueryMap {
     fn clone(&self) -> Self {
         QueryMap(self.0.clone())
     }
 }
 
-impl<V> From<HashMap<String, Vec<V>>> for QueryMap<V> {
-    fn from(inner: HashMap<String, Vec<V>>) -> Self {
+impl From<HashMap<String, Vec<String>>> for QueryMap {
+    fn from(inner: HashMap<String, Vec<String>>) -> Self {
         QueryMap(Arc::new(inner))
     }
 }
 
 /// A read only reference to the `QueryMap`'s data
-pub struct QueryMapIter<'a, V> {
-    data: &'a QueryMap<V>,
-    keys: Keys<'a, String, Vec<V>>,
-    current: Option<(&'a String, Vec<&'a V>)>,
+pub struct QueryMapIter<'a> {
+    data: &'a QueryMap,
+    keys: Keys<'a, String, Vec<String>>,
+    current: Option<(&'a String, Vec<&'a str>)>,
     next_idx: usize,
 }
 
-impl<'a, V> Iterator for QueryMapIter<'a, V> {
-    type Item = (&'a str, &'a V);
+impl<'a> Iterator for QueryMapIter<'a> {
+    type Item = (&'a str, &'a str);
 
     #[inline]
-    fn next(&mut self) -> Option<(&'a str, &'a V)> {
+    fn next(&mut self) -> Option<(&'a str, &'a str)> {
         if self.current.is_none() {
             self.current = self
                 .keys
@@ -178,7 +180,7 @@ mod tests {
 
     #[test]
     fn str_map_default_is_empty() {
-        let d: QueryMap<String> = QueryMap::default();
+        let d: QueryMap = QueryMap::default();
         assert!(d.is_empty())
     }
 
@@ -186,8 +188,8 @@ mod tests {
     fn test_map_first() {
         let mut data = HashMap::new();
         data.insert("foo".into(), vec!["bar".into()]);
-        let map: QueryMap<String> = QueryMap(data.into());
-        assert_eq!("bar", map.first("foo").unwrap().as_str());
+        let map: QueryMap = QueryMap(data.into());
+        assert_eq!("bar", map.first("foo").unwrap());
         assert_eq!(None, map.first("bar"));
     }
 
@@ -195,7 +197,7 @@ mod tests {
     fn test_map_all() {
         let mut data = HashMap::new();
         data.insert("foo".into(), vec!["bar".into(), "baz".into()]);
-        let map: QueryMap<String> = QueryMap(data.into());
+        let map: QueryMap = QueryMap(data.into());
         let got = map.all("foo").unwrap();
         assert_eq!(vec!["bar", "baz"], got);
         assert_eq!(None, map.all("bar"));
@@ -206,7 +208,7 @@ mod tests {
         let mut data = HashMap::new();
         data.insert("foo".into(), vec!["bar".into()]);
         data.insert("baz".into(), vec!["boom".into()]);
-        let map: QueryMap<String> = QueryMap(data.into());
+        let map: QueryMap = QueryMap(data.into());
         let mut values = map.iter().map(|(_, v)| v).collect::<Vec<_>>();
         values.sort();
         assert_eq!(vec!["bar", "boom"], values);
