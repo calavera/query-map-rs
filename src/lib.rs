@@ -59,7 +59,7 @@
 //!
 
 use std::{
-    collections::{hash_map::Keys, HashMap},
+    collections::{hash_map::Entry::*, hash_map::Keys, HashMap},
     sync::Arc,
 };
 
@@ -126,6 +126,23 @@ impl Clone for QueryMap {
 impl From<HashMap<String, Vec<String>>> for QueryMap {
     fn from(inner: HashMap<String, Vec<String>>) -> Self {
         QueryMap(Arc::new(inner))
+    }
+}
+
+impl From<HashMap<String, String>> for QueryMap {
+    fn from(inner: HashMap<String, String>) -> Self {
+        let mut map: HashMap<String, Vec<String>> = HashMap::new();
+        for (k, v) in inner {
+            match map.entry(k) {
+                Occupied(entry) => {
+                    entry.into_mut().push(v);
+                }
+                Vacant(entry) => {
+                    entry.insert(vec![v]);
+                }
+            };
+        }
+        QueryMap(Arc::new(map))
     }
 }
 
@@ -212,5 +229,13 @@ mod tests {
         let mut values = map.iter().map(|(_, v)| v).collect::<Vec<_>>();
         values.sort();
         assert_eq!(vec!["bar", "boom"], values);
+    }
+
+    #[test]
+    fn test_map_from_string_string() {
+        let mut data: HashMap<String, String> = HashMap::new();
+        data.insert("foo".into(), "bar".into());
+        let map: QueryMap = QueryMap::from(data);
+        assert_eq!(vec!["bar"], map.all("foo").unwrap());
     }
 }
