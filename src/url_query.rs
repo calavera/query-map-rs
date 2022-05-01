@@ -1,13 +1,15 @@
 use crate::QueryMap;
-use std::{collections::hash_map::Entry::*, collections::HashMap};
+use std::{
+    collections::hash_map::Entry::{Occupied, Vacant},
+    collections::HashMap,
+};
 
 impl QueryMap {
     /// Convert a `QueryMap` into a URL query string
     pub fn to_query_string(&self) -> String {
-        self.iter()
-            .map(|(k, v)| format!("{}={}", k, v))
-            .collect::<Vec<_>>()
-            .join("&")
+        form_urlencoded::Serializer::new(String::new())
+            .extend_pairs(self.iter())
+            .finish()
     }
 }
 
@@ -66,5 +68,18 @@ mod tests {
         assert_eq!(vec!["bar", "qux"], got);
         let got = map.first("baz").unwrap();
         assert_eq!("quux", got);
+    }
+
+    #[test]
+    fn test_space_is_encoded_as_plus() {
+        let data = "foo=bar+baz";
+        let map = data.parse::<QueryMap>().unwrap();
+
+        let got = map.first("foo").unwrap();
+        assert_eq!("bar baz", got);
+
+        let query = map.to_query_string();
+
+        assert_eq!(data, query);
     }
 }
