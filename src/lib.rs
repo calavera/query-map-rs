@@ -4,15 +4,15 @@
 
 //!
 //!
-//! QueryMap is a generic wrapper around HashMap<String, Vec<String>>
+//! `QueryMap` is a generic wrapper around `HashMap<String, Vec<String>>`
 //! to handle different transformations like URL query strings.
 //!
-//! QueryMap can normalize HashMap structures with single value elements
+//! `QueryMap` can normalize `HashMap` structures with single value elements
 //! into structures with value vector elements.
 //!
 //! # Examples
 //!
-//! Create a QueryMap from a HashMap:
+//! Create a `QueryMap` from a `HashMap`:
 //!
 //! ```
 //! use std::collections::HashMap;
@@ -26,7 +26,7 @@
 //! assert_eq!(None, map.first("bar"));
 //! ```
 //!
-//! Create a QueryMap from a Serde Value (requires `serde` feature):
+//! Create a `QueryMap` from a Serde Value (requires `serde` feature):
 //!
 //! ```ignore
 //! use query_map::QueryMap;
@@ -46,7 +46,7 @@
 //! assert_eq!("bar", test.data.first("foo").unwrap());
 //! ```
 //!
-//! Create a QueryMap from a query string (requires `url-query` feature):
+//! Create a `QueryMap` from a query string (requires `url-query` feature):
 //!
 //! ```
 //! use query_map::QueryMap;
