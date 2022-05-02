@@ -59,7 +59,7 @@
 //!
 
 use std::{
-    collections::{hash_map::Entry::*, hash_map::Keys, HashMap},
+    collections::{hash_map::Keys, HashMap},
     sync::Arc,
 };
 
@@ -88,6 +88,7 @@ pub struct QueryMap(pub(crate) Arc<HashMap<String, Vec<String>>>);
 
 impl QueryMap {
     /// Return the first elelemnt associated with a key
+    #[must_use]
     pub fn first(&self, key: &str) -> Option<&str> {
         self.0
             .get(key)
@@ -95,6 +96,7 @@ impl QueryMap {
     }
 
     /// Return all elements associated with a key
+    #[must_use]
     pub fn all(&self, key: &str) -> Option<Vec<&str>> {
         self.0
             .get(key)
@@ -102,11 +104,13 @@ impl QueryMap {
     }
 
     /// Return true if there are no elements in the map
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     /// Return an iterator for this map
+    #[must_use]
     pub fn iter(&self) -> QueryMapIter<'_> {
         QueryMapIter {
             data: self,
@@ -131,17 +135,9 @@ impl From<HashMap<String, Vec<String>>> for QueryMap {
 
 impl From<HashMap<String, String>> for QueryMap {
     fn from(inner: HashMap<String, String>) -> Self {
-        let mut map: HashMap<String, Vec<String>> = HashMap::new();
-        for (k, v) in inner {
-            match map.entry(k) {
-                Occupied(entry) => {
-                    entry.into_mut().push(v);
-                }
-                Vacant(entry) => {
-                    entry.insert(vec![v]);
-                }
-            };
-        }
+        // A `HashMap` cannot have repeated (key, value) pairs
+        let map: HashMap<String, Vec<String>> =
+            inner.into_iter().map(|(k, v)| (k, vec![v])).collect();
         QueryMap(Arc::new(map))
     }
 }
