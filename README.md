@@ -20,7 +20,7 @@ cargo install query_map
 
 Create a QueryMap from a HashMap:
 
-```
+```rust
 use std::collections::HashMap;
 use query_map::QueryMap;
 
@@ -34,7 +34,7 @@ assert_eq!(None, map.first("bar"));
 
 Create a QueryMap from a Serde Value (requires `serde` feature):
 
-```ignore
+```rust
 use query_map::QueryMap;
 #[derive(Deserialize)]
 struct Test {
@@ -53,7 +53,7 @@ assert_eq!("bar", test.data.first("foo").unwrap());
 
 Create a QueryMap from a query string (requires `url-query` feature):
 
-```
+```rust
 use query_map::QueryMap;
 
 let data = "foo=bar&baz=quux&foo=qux";
