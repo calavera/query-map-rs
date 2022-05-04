@@ -30,6 +30,7 @@
 //!
 //! ```ignore
 //! use query_map::QueryMap;
+//! use query_map::serde::standard::*;
 //!
 //! #[derive(Deserialize)]
 //! struct Test {
@@ -64,10 +65,7 @@ use std::{
 };
 
 #[cfg(feature = "serde")]
-mod serde;
-
-#[cfg(feature = "serde")]
-pub use crate::serde::*;
+pub mod serde;
 
 #[cfg(feature = "serde")]
 #[macro_use]

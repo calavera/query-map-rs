@@ -3,7 +3,7 @@ use serde_crate::{
     Deserialize, Deserializer,
 };
 
-use super::QueryMap;
+use crate::QueryMap;
 use std::{collections::HashMap, fmt, sync::Arc};
 
 #[cfg_attr(feature = "serde", derive(Deserialize), serde(crate = "serde_crate"))]
