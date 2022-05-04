@@ -3,7 +3,7 @@ use serde_crate::{
     Deserialize, Deserializer,
 };
 
-use super::QueryMap;
+use crate::QueryMap;
 use std::{collections::HashMap, fmt, sync::Arc};
 
 #[cfg_attr(feature = "serde", derive(Deserialize), serde(crate = "serde_crate"))]
@@ -49,15 +49,14 @@ impl<'de> Visitor<'de> for QueryMapVisitor {
     {
         let mut inner = map
             .size_hint()
-            .map(HashMap::with_capacity)
-            .unwrap_or_else(HashMap::new);
+            .map_or_else(HashMap::new, HashMap::with_capacity);
         // values may either be a single String or Vec<String>
         // to handle both single and multi value data
         while let Some((key, value)) = map.next_entry::<_, OneOrMany>()? {
             inner.insert(
                 key,
                 match value {
-                    OneOrMany::One(one) => one.split(',').map(String::from).collect::<Vec<_>>(),
+                    OneOrMany::One(one) => vec![one],
                     OneOrMany::Many(many) => many,
                 },
             );
@@ -188,11 +187,11 @@ mod tests {
         });
 
         let test: Test = serde_json::from_value(json).unwrap();
-        assert_eq!("bar", test.data.first("foo").unwrap());
+        assert_eq!("bar,baz", test.data.first("foo").unwrap());
 
         let expected = serde_json::json!({
             "data": {
-                "foo": ["bar", "baz"]
+                "foo": ["bar,baz"]
             }
         });
 
@@ -201,7 +200,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_vector() {
+    fn test_deserialize_vector_single() {
         #[cfg_attr(
             feature = "serde",
             derive(Deserialize, Serialize),
@@ -219,6 +218,31 @@ mod tests {
 
         let test: Test = serde_json::from_value(json.clone()).unwrap();
         assert_eq!("bar", test.data.first("foo").unwrap());
+
+        let reparsed = serde_json::to_value(test).unwrap();
+        assert_eq!(json, reparsed);
+    }
+
+    #[test]
+    fn test_deserialize_vector_all() {
+        #[cfg_attr(
+            feature = "serde",
+            derive(Deserialize, Serialize),
+            serde(crate = "serde_crate")
+        )]
+        struct Test {
+            data: QueryMap,
+        }
+
+        let json = serde_json::json!({
+            "data": {
+                "foo": ["bar", "baz"]
+            }
+        });
+
+        let test: Test = serde_json::from_value(json.clone()).unwrap();
+        assert_eq!("bar", test.data.first("foo").unwrap());
+        assert_eq!(vec!["bar", "baz"], test.data.all("foo").unwrap());
 
         let reparsed = serde_json::to_value(test).unwrap();
         assert_eq!(json, reparsed);
