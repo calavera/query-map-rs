@@ -68,6 +68,9 @@ use std::{
 pub mod serde;
 
 #[cfg(feature = "serde")]
+pub use serde::standard::*;
+
+#[cfg(feature = "serde")]
 #[macro_use]
 extern crate serde_derive;
 
