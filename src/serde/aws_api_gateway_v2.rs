@@ -1,6 +1,7 @@
 use serde_crate::{
     de::{Error as DeError, MapAccess, Visitor},
-    Deserialize, Deserializer,
+    ser::SerializeMap,
+    Deserialize, Deserializer, Serializer,
 };
 
 use crate::QueryMap;
@@ -89,6 +90,26 @@ where
     D: Deserializer<'de>,
 {
     deserializer.deserialize_option(QueryMapVisitor)
+}
+
+/// Serializes `QueryMap`, converting value from `Vec<String>` to `String`
+pub fn serialize_query_string_parameters<S>(
+    value: &QueryMap,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let query_string_parameters: HashMap<String, String> = (*value)
+        .iter()
+        .map(|(k, _)| (String::from(k), (*value).all(k).unwrap().join(",")))
+        .collect::<HashMap<String, String>>();
+
+    let mut map = serializer.serialize_map(Some(query_string_parameters.len()))?;
+    for (k, v) in &query_string_parameters {
+        map.serialize_entry(k, v)?;
+    }
+    map.end()
 }
 
 #[cfg(test)]
@@ -225,5 +246,35 @@ mod tests {
 
         let reparsed = serde_json::to_value(test).unwrap();
         assert_eq!(json, reparsed);
+    }
+
+    #[test]
+    fn test_serialize_multiple_values() {
+        #[cfg_attr(
+            feature = "serde",
+            derive(Deserialize, Serialize),
+            serde(crate = "serde_crate")
+        )]
+        struct Test {
+            #[serde(default, deserialize_with = "deserialize_empty")]
+            #[serde(serialize_with = "serialize_query_string_parameters")]
+            pub v: QueryMap,
+        }
+
+        let data = serde_json::json!({
+            "v": {
+                "key1": ["value1", "value2", "value3"]
+            }
+        });
+
+        let decoded: Test = serde_json::from_value(data).unwrap();
+        let key1_value = decoded.v.all("key1").unwrap();
+        assert_eq!(3, key1_value.len());
+
+        let encoded = serde_json::to_string(&decoded).unwrap();
+        assert_eq!(
+            encoded,
+            r#"{"v":{"key1":"value1,value2,value3"}}"#.to_string()
+        );
     }
 }
