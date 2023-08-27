@@ -4,15 +4,15 @@
 
 //!
 //!
-//! `QueryMap` is a generic wrapper around `HashMap<String, Vec<String>>`
+//! [`QueryMap`] is a generic wrapper around [`HashMap<String, Vec<String>>`]
 //! to handle different transformations like URL query strings.
 //!
-//! `QueryMap` can normalize `HashMap` structures with single value elements
+//! [`QueryMap`] can normalize [`HashMap`] structures with single value elements
 //! into structures with value vector elements.
 //!
 //! # Examples
 //!
-//! Create a `QueryMap` from a `HashMap`:
+//! Create a [`QueryMap`] from a [`HashMap`]:
 //!
 //! ```
 //! use std::collections::HashMap;
@@ -26,7 +26,7 @@
 //! assert_eq!(None, map.first("bar"));
 //! ```
 //!
-//! Create a `QueryMap` from a Serde Value (requires `serde` feature):
+//! Create a [`QueryMap`] from a Serde Value (requires `serde` feature):
 //!
 //! ```ignore
 //! use query_map::QueryMap;
@@ -47,7 +47,7 @@
 //! assert_eq!("bar", test.data.first("foo").unwrap());
 //! ```
 //!
-//! Create a `QueryMap` from a query string (requires `url-query` feature):
+//! Create a [`QueryMap`] from a query string (requires `url-query` feature):
 //!
 //! ```
 //! use query_map::QueryMap;
@@ -88,7 +88,7 @@ pub use url_query::*;
 pub struct QueryMap(pub(crate) Arc<HashMap<String, Vec<String>>>);
 
 impl QueryMap {
-    /// Return the first elelemnt associated with a key
+    /// Return the first element associated with a key
     #[must_use]
     pub fn first(&self, key: &str) -> Option<&str> {
         self.0
@@ -143,7 +143,7 @@ impl From<HashMap<String, String>> for QueryMap {
     }
 }
 
-/// A read only reference to the `QueryMap`'s data
+/// A read only reference to the [`QueryMap`]'s data
 pub struct QueryMapIter<'a> {
     data: &'a QueryMap,
     keys: Keys<'a, String, Vec<String>>,

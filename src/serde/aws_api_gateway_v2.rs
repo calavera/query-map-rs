@@ -67,8 +67,8 @@ impl<'de> Visitor<'de> for QueryMapVisitor {
     }
 }
 
-/// Deserialize values into a `QueryMap`.
-/// This function asumes that all values have been initialized.
+/// Deserialize values into a [`QueryMap`].
+/// This function assumes that all values have been initialized.
 pub fn deserialize<'de, D>(deserializer: D) -> Result<QueryMap, D::Error>
 where
     D: Deserializer<'de>,
@@ -84,7 +84,7 @@ where
     Option::deserialize(deserializer)
 }
 
-/// Deserialize `null` values into default `QueryMap` objects
+/// Deserialize `null` values into default [`QueryMap`] objects
 pub fn deserialize_empty<'de, D>(deserializer: D) -> Result<QueryMap, D::Error>
 where
     D: Deserializer<'de>,
@@ -92,7 +92,7 @@ where
     deserializer.deserialize_option(QueryMapVisitor)
 }
 
-/// Serializes `QueryMap`, converting value from `Vec<String>` to `String`
+/// Serializes [`QueryMap`], converting value from [`Vec<String>`] to [`String`]
 pub fn serialize_query_string_parameters<S>(
     value: &QueryMap,
     serializer: S,

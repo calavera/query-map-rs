@@ -3,7 +3,7 @@ use serde_crate::{ser::SerializeMap, Serializer};
 use crate::QueryMap;
 use std::collections::HashMap;
 
-/// Serializes `QueryMap`, converting value from `Vec<String>` to `String`
+/// Serializes [`QueryMap`], converting value from [`Vec<String>`] to [`String`]
 pub fn serialize_query_string_parameters<S>(
     value: &QueryMap,
     serializer: S,

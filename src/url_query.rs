@@ -5,7 +5,7 @@ use std::{
 };
 
 impl QueryMap {
-    /// Convert a `QueryMap` into a URL query string
+    /// Convert a [`QueryMap`] into a URL query string
     pub fn to_query_string(&self) -> String {
         form_urlencoded::Serializer::new(String::new())
             .extend_pairs(self.iter())

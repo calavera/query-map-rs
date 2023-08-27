@@ -82,7 +82,7 @@ where
     Option::deserialize(deserializer)
 }
 
-/// Deserialize `null` values into default `QueryMap` objects
+/// Deserialize `null` values into default [`QueryMap`] objects
 pub fn deserialize_empty<'de, D>(deserializer: D) -> Result<QueryMap, D::Error>
 where
     D: Deserializer<'de>,

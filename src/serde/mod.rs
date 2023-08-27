@@ -1,5 +1,5 @@
 //!
-//! The serde module implements derializers for payloads into QueryMap.
+//! The serde module implements deserializers for payloads into QueryMap.
 //! You need to enable the feature `serde` to access these deserializers.
 //!
 
