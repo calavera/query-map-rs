@@ -120,6 +120,13 @@ impl QueryMap {
             next_idx: 0,
         }
     }
+    /// Return an iterator for the keys of this map
+    #[must_use]
+    pub fn keys(&self) -> QueryMapKeys<'_> {
+        QueryMapKeys {
+            keys: self.0.keys(),
+        }
+    }
 }
 
 impl Clone for QueryMap {
@@ -187,6 +194,20 @@ impl<'a> Iterator for QueryMapIter<'a> {
     }
 }
 
+/// A read only reference to the [`QueryMap`]'s keys
+pub struct QueryMapKeys<'a> {
+    keys: Keys<'a, String, Vec<String>>,
+}
+
+impl<'a> Iterator for QueryMapKeys<'a> {
+    type Item = &'a str;
+
+    #[inline]
+    fn next(&mut self) -> Option<&'a str> {
+        self.keys.next().map(|k| k.as_str())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -226,6 +247,20 @@ mod tests {
         let mut values = map.iter().map(|(_, v)| v).collect::<Vec<_>>();
         values.sort();
         assert_eq!(vec!["bar", "boom"], values);
+    }
+
+    #[test]
+    fn test_keys_iter() {
+        let mut data = HashMap::new();
+        data.insert("foo".into(), vec!["bar".into(),"bar2".into()]);
+        data.insert("baz".into(), vec!["boom".into()]);
+        let map: QueryMap = QueryMap(data.into());
+        let mut first_values = map.keys().map(|k| map.first(k).unwrap()).collect::<Vec<_>>();
+        first_values.sort();
+        assert_eq!(vec!["bar", "boom"], first_values);
+        let mut last_values = map.keys().map(|k| *(map.all(k).unwrap().last().unwrap())).collect::<Vec<_>>();
+        last_values.sort();
+        assert_eq!(vec!["bar2", "boom"], last_values);
     }
 
     #[test]
